@@ -18,6 +18,9 @@ class StructuredFactImporter < FactImporter
       v.nil? || (v.is_a?(String) && v.empty?) || ((v.is_a?(Hash) || v.is_a?(Array)) && v.count > max && (dropped += v.count))
     end
 
+    # Remove excluded facts to make it possible to import nodes with a too large number of facts
+    facts = flatten_composite({}, facts)
+
     # Remove flat facts exceeding the limit
     flat_counts.each_pair do |string, count|
       if count > max
@@ -31,8 +34,6 @@ class StructuredFactImporter < FactImporter
       facts['foreman']['dropped_subtree_facts'] = number_to_human(dropped, precision: 1)
       logger.warn "Some subtrees exceeded #{max} limit of facts, dropped #{dropped} keys"
     end
-
-    facts = flatten_composite({}, facts)
 
     original_keys = facts.keys.to_a
     original_keys.each do |key|
